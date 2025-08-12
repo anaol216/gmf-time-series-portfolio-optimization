@@ -1,0 +1,57 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Virtual environment
+env/
+venv/
+.venv/
+ENV/
+
+# Data files
+data/*.csv
+data/*.xlsx
+*.h5
+*.hdf5
+*.parquet
+*.feather
+
+# Model files
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE and editor settings
+.vscode/
+.idea/
+
+# Environment/config files
+*.env
+.env.*
+config.json
+
+# Figures (optional, keep only if auto-generated)
+figures/
+
+# Outputs (optional)
+*.out
+*.tmp
+
+# Ignore large raw datasets, but keep small processed versions if needed
+data/raw/*
+!data/processed/
