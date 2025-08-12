@@ -1,0 +1,14 @@
+yfinance
+pandas
+numpy
+matplotlib
+seaborn
+statsmodels
+pmdarima
+scikit-learn
+tensorflow>=2.0
+pyportfolioopt
+empyrical
+ffn
+scipy
+joblib
