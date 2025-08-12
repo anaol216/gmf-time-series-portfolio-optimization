@@ -24,12 +24,19 @@ def download_data(tickers, start_date, end_date, save_dir='data/raw'):
         data[ticker] = df
     print("Data download complete.")
     return data
-def load_data_from_csv(ticker, data_dir='data/raw'):
+
+def load_data_from_csv(filepath):
     """
-    Load historical stock data from a CSV file.
+    Load CSV data and ensure columns are named consistently.
+    Handles files where ticker names are repeated for each OHLCV field.
     """
-    file_path = os.path.join(data_dir, f"{ticker}.csv")
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Data file for {ticker} not found in {data_dir}.")
-    df = pd.read_csv(file_path, index_col='Date', parse_dates=True)
+    df = pd.read_csv(filepath, index_col=0, parse_dates=True)
+
+    # If duplicate column names exist, try to rename them
+    if df.columns.duplicated().any():
+        # Assign proper names assuming standard Yahoo format
+        col_names = ["Open", "High", "Low", "Close", "Adj Close", "Volume"]
+        ticker = os.path.splitext(os.path.basename(filepath))[0]  # file name as ticker
+        df.columns = pd.MultiIndex.from_product([[col_names[i] for i in range(len(df.columns)//len(col_names))], col_names])
+
     return df
