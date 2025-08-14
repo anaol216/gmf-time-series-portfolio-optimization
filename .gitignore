@@ -54,4 +54,4 @@ figures/
 
 # Ignore large raw datasets, but keep small processed versions if needed
 data/raw/*
-!data/processed/
+data/processed/
