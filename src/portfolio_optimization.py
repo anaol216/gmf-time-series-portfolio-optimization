@@ -45,6 +45,7 @@ def optimize_portfolio(mu, sigma, risk_free_rate=0.02):
     min_vol_performance = ef_min_vol.portfolio_performance(verbose=False)
 
     return ef_max_sharpe, cleaned_weights_max_sharpe, max_sharpe_performance, cleaned_weights_min_vol, min_vol_performance
+
 def plot_efficient_frontier(ef, max_sharpe_weights, min_vol_weights, max_sharpe_performance, min_vol_performance):
     """
     Plots the Efficient Frontier with key portfolios marked using their performance data.
@@ -89,3 +90,61 @@ def get_portfolio_performance(weights, mu, sigma, risk_free_rate=0.02):
     portfolio_volatility = np.sqrt(np.dot(np.array(list(weights.values())).T, np.dot(sigma, np.array(list(weights.values())))))
     sharpe_ratio = (portfolio_return - risk_free_rate) / portfolio_volatility
     return portfolio_return, portfolio_volatility, sharpe_ratio
+
+def backtest_strategy(df, strategy_weights, benchmark_weights, start_date, end_date):
+    """
+    Performs a backtest of the portfolio strategy against a benchmark.
+    """
+    print("\n--- 1. Backtesting Strategy vs. Benchmark ---")
+    backtest_data = df.loc[start_date:end_date]
+    if backtest_data.empty:
+        print(f"No data available for the period {start_date} to {end_date}.")
+        return
+
+    backtest_returns = backtest_data.pct_change().dropna()
+    risk_free_rate = 0.02
+
+    strategy_weights_series = pd.Series(strategy_weights).reindex(backtest_returns.columns, fill_value=0)
+    benchmark_weights_series = pd.Series(benchmark_weights).reindex(backtest_returns.columns, fill_value=0)
+
+    strategy_portfolio_returns = backtest_returns.dot(strategy_weights_series)
+    benchmark_portfolio_returns = backtest_returns.dot(benchmark_weights_series)
+
+    strategy_cumulative_returns = (1 + strategy_portfolio_returns).cumprod()
+    benchmark_cumulative_returns = (1 + benchmark_portfolio_returns).cumprod()
+
+    plt.figure(figsize=(12, 8))
+    plt.plot(strategy_cumulative_returns, label="Optimized Portfolio Strategy")
+    plt.plot(benchmark_cumulative_returns, label="60/40 SPY/BND Benchmark")
+    plt.title("Backtest of Portfolio Strategy vs. Benchmark")
+    plt.xlabel("Date")
+    plt.ylabel("Cumulative Returns")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    strategy_total_return = strategy_cumulative_returns.iloc[-1] - 1
+    benchmark_total_return = benchmark_cumulative_returns.iloc[-1] - 1
+
+    num_trading_days = len(strategy_portfolio_returns)
+    if num_trading_days > 0:
+        strategy_annualized_return = (1 + strategy_portfolio_returns.mean())**252 - 1
+        strategy_annualized_volatility = strategy_portfolio_returns.std() * np.sqrt(252)
+        strategy_sharpe = (strategy_annualized_return - risk_free_rate) / strategy_annualized_volatility if strategy_annualized_volatility > 0 else 0
+
+        benchmark_annualized_return = (1 + benchmark_portfolio_returns.mean())**252 - 1
+        benchmark_annualized_volatility = benchmark_portfolio_returns.std() * np.sqrt(252)
+        benchmark_sharpe = (benchmark_annualized_return - risk_free_rate) / benchmark_annualized_volatility if benchmark_annualized_volatility > 0 else 0
+    else:
+        strategy_annualized_return, strategy_annualized_volatility, strategy_sharpe = 0, 0, 0
+        benchmark_annualized_return, benchmark_annualized_volatility, benchmark_sharpe = 0, 0, 0
+
+    print("\n### Backtest Results ###")
+    print("-" * 30)
+    print("Final Performance (Backtest Period):")
+    print(f"Strategy Total Return: {strategy_total_return:.2%}")
+    print(f"Benchmark Total Return: {benchmark_total_return:.2%}")
+    print("\nRisk-Adjusted Performance (Annualized):")
+    print(f"Strategy Sharpe Ratio: {strategy_sharpe:.2f}")
+    print(f"Benchmark Sharpe Ratio: {benchmark_sharpe:.2f}")
